@@ -1,0 +1,1 @@
+{"version":3,"file":"vote.d.ts","sourceRoot":"","sources":["../../../src/generated/types/vote.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,cAAc,CAAC;AAE/C,MAAM,WAAW,IAAI;IACnB,EAAE,EAAE,MAAM,CAAC;IACX,UAAU,EAAE,MAAM,CAAC;IACnB,aAAa,EAAE,MAAM,CAAC;IACtB,MAAM,EAAE,UAAU,CAAC;IACnB,MAAM,EAAE,MAAM,CAAC;IACf,SAAS,EAAE,IAAI,CAAC;CACjB"}

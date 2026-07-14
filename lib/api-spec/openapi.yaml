@@ -1,0 +1,1216 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: ProofGoal API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: matches
+    description: Live match / fixture data (sourced from TxLINE)
+  - name: markets
+    description: Prediction markets and selections
+  - name: positions
+    description: User bets/positions on markets
+  - name: insurance
+    description: Insurance products and policies
+  - name: proofs
+    description: Proof explorer - cryptographic validation records
+  - name: portfolio
+    description: User portfolio aggregation
+  - name: analytics
+    description: Platform-wide analytics
+  - name: governance
+    description: Governance proposals and voting
+  - name: liquidity
+    description: Liquidity pools
+  - name: users
+    description: Wallet-based user accounts
+  - name: integration
+    description: TxLINE oracle integration status
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /integration/txline:
+    get:
+      operationId: getTxlineStatus
+      tags: [integration]
+      summary: Get TxLINE oracle integration status
+      responses:
+        "200":
+          description: TxLINE status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TxlineStatus"
+
+  /users/connect:
+    post:
+      operationId: connectWallet
+      tags: [users]
+      summary: Register or fetch a user by Solana wallet address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletConnectInput"
+      responses:
+        "200":
+          description: User record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{walletAddress}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get user by wallet address
+      parameters:
+        - $ref: "#/components/parameters/WalletAddressParam"
+      responses:
+        "200":
+          description: User record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: Not found
+
+  /matches:
+    get:
+      operationId: listMatches
+      tags: [matches]
+      summary: List matches synced from TxLINE
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/MatchStatus"
+      responses:
+        "200":
+          description: List of matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
+
+  /matches/live:
+    get:
+      operationId: listLiveMatches
+      tags: [matches]
+      summary: List currently live matches with latest score/events
+      responses:
+        "200":
+          description: Live matches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Match"
+
+  /matches/{matchId}:
+    get:
+      operationId: getMatch
+      tags: [matches]
+      summary: Get a single match with markets summary
+      parameters:
+        - $ref: "#/components/parameters/MatchIdParam"
+      responses:
+        "200":
+          description: Match detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchDetail"
+        "404":
+          description: Not found
+
+  /matches/{matchId}/events:
+    get:
+      operationId: listMatchEvents
+      tags: [matches]
+      summary: List match events (goals, cards, corners) synced from TxLINE
+      parameters:
+        - $ref: "#/components/parameters/MatchIdParam"
+      responses:
+        "200":
+          description: Match events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MatchEvent"
+
+  /markets:
+    get:
+      operationId: listMarkets
+      tags: [markets]
+      summary: List prediction markets
+      parameters:
+        - name: matchId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/MarketType"
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/MarketStatus"
+      responses:
+        "200":
+          description: List of markets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Market"
+    post:
+      operationId: createCustomMarket
+      tags: [markets]
+      summary: Create a user-defined custom market
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarketInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Market"
+
+  /markets/{marketId}:
+    get:
+      operationId: getMarket
+      tags: [markets]
+      summary: Get market detail with selections and odds
+      parameters:
+        - $ref: "#/components/parameters/MarketIdParam"
+      responses:
+        "200":
+          description: Market detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Market"
+        "404":
+          description: Not found
+
+  /positions:
+    get:
+      operationId: listPositions
+      tags: [positions]
+      summary: List positions for a wallet
+      parameters:
+        - $ref: "#/components/parameters/WalletAddressQueryParam"
+      responses:
+        "200":
+          description: List of positions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Position"
+    post:
+      operationId: createPosition
+      tags: [positions]
+      summary: Place a position (stake) on a market selection - escrowed pending settlement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PositionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Position"
+
+  /positions/{positionId}:
+    get:
+      operationId: getPosition
+      tags: [positions]
+      summary: Get position detail including settlement record
+      parameters:
+        - $ref: "#/components/parameters/PositionIdParam"
+      responses:
+        "200":
+          description: Position detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Position"
+        "404":
+          description: Not found
+
+  /insurance/products:
+    get:
+      operationId: listInsuranceProducts
+      tags: [insurance]
+      summary: List available insurance products
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/InsuranceType"
+      responses:
+        "200":
+          description: List of insurance products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsuranceProduct"
+    post:
+      operationId: createInsuranceProduct
+      tags: [insurance]
+      summary: Create a user-defined insurance product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsuranceProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceProduct"
+
+  /insurance/products/{productId}:
+    get:
+      operationId: getInsuranceProduct
+      tags: [insurance]
+      summary: Get insurance product detail
+      parameters:
+        - $ref: "#/components/parameters/ProductIdParam"
+      responses:
+        "200":
+          description: Insurance product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceProduct"
+        "404":
+          description: Not found
+
+  /insurance/policies:
+    get:
+      operationId: listInsurancePolicies
+      tags: [insurance]
+      summary: List insurance policies for a wallet
+      parameters:
+        - $ref: "#/components/parameters/WalletAddressQueryParam"
+      responses:
+        "200":
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsurancePolicy"
+    post:
+      operationId: purchaseInsurancePolicy
+      tags: [insurance]
+      summary: Purchase an insurance policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsurancePolicyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsurancePolicy"
+
+  /insurance/policies/{policyId}:
+    get:
+      operationId: getInsurancePolicy
+      tags: [insurance]
+      summary: Get insurance policy detail
+      parameters:
+        - $ref: "#/components/parameters/PolicyIdParam"
+      responses:
+        "200":
+          description: Policy detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsurancePolicy"
+        "404":
+          description: Not found
+
+  /proofs:
+    get:
+      operationId: listProofRecords
+      tags: [proofs]
+      summary: List proof/validation records for the explorer
+      parameters:
+        - name: matchId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ValidationStatus"
+      responses:
+        "200":
+          description: List of proof records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProofRecord"
+
+  /proofs/{proofId}:
+    get:
+      operationId: getProofRecord
+      tags: [proofs]
+      summary: Get a single proof record with merkle path and verification receipt
+      parameters:
+        - $ref: "#/components/parameters/ProofIdParam"
+      responses:
+        "200":
+          description: Proof record detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProofRecord"
+        "404":
+          description: Not found
+
+  /portfolio/{walletAddress}:
+    get:
+      operationId: getPortfolioSummary
+      tags: [portfolio]
+      summary: Get aggregated portfolio summary for a wallet (positions + policies + P&L)
+      parameters:
+        - $ref: "#/components/parameters/WalletAddressParam"
+      responses:
+        "200":
+          description: Portfolio summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioSummary"
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Get platform-wide analytics summary (volume, open interest, active markets)
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /analytics/volume-series:
+    get:
+      operationId: getVolumeSeries
+      tags: [analytics]
+      summary: Get daily staked volume time series
+      responses:
+        "200":
+          description: Volume series
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VolumePoint"
+
+  /liquidity/pools:
+    get:
+      operationId: listLiquidityPools
+      tags: [liquidity]
+      summary: List liquidity pools backing markets
+      responses:
+        "200":
+          description: List of pools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LiquidityPool"
+
+  /governance/proposals:
+    get:
+      operationId: listGovernanceProposals
+      tags: [governance]
+      summary: List governance proposals
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ProposalStatus"
+      responses:
+        "200":
+          description: List of proposals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GovernanceProposal"
+    post:
+      operationId: createGovernanceProposal
+      tags: [governance]
+      summary: Create a new governance proposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GovernanceProposalInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GovernanceProposal"
+
+  /governance/proposals/{proposalId}:
+    get:
+      operationId: getGovernanceProposal
+      tags: [governance]
+      summary: Get governance proposal detail with vote tallies
+      parameters:
+        - $ref: "#/components/parameters/ProposalIdParam"
+      responses:
+        "200":
+          description: Proposal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GovernanceProposal"
+        "404":
+          description: Not found
+
+  /governance/proposals/{proposalId}/votes:
+    post:
+      operationId: castVote
+      tags: [governance]
+      summary: Cast a vote on a governance proposal
+      parameters:
+        - $ref: "#/components/parameters/ProposalIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "201":
+          description: Vote recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+
+components:
+  parameters:
+    WalletAddressParam:
+      name: walletAddress
+      in: path
+      required: true
+      schema:
+        type: string
+    WalletAddressQueryParam:
+      name: walletAddress
+      in: query
+      required: true
+      schema:
+        type: string
+    MatchIdParam:
+      name: matchId
+      in: path
+      required: true
+      schema:
+        type: string
+    MarketIdParam:
+      name: marketId
+      in: path
+      required: true
+      schema:
+        type: string
+    PositionIdParam:
+      name: positionId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProductIdParam:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+    PolicyIdParam:
+      name: policyId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProofIdParam:
+      name: proofId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProposalIdParam:
+      name: proposalId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    TxlineStatus:
+      type: object
+      required: [activated, serviceLevel, lastSyncAt, matchesSynced, message]
+      properties:
+        activated:
+          type: boolean
+        serviceLevel:
+          type: ["integer", "null"]
+        lastSyncAt:
+          type: ["string", "null"]
+          format: date-time
+        matchesSynced:
+          type: integer
+        message:
+          type: string
+
+    WalletConnectInput:
+      type: object
+      required: [walletAddress]
+      properties:
+        walletAddress:
+          type: string
+
+    User:
+      type: object
+      required: [id, walletAddress, createdAt]
+      properties:
+        id:
+          type: string
+        walletAddress:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    MatchStatus:
+      type: string
+      enum: [scheduled, live, finished, postponed]
+
+    Match:
+      type: object
+      required:
+        [
+          id,
+          txlineFixtureId,
+          tournament,
+          stage,
+          homeTeam,
+          awayTeam,
+          kickoffAt,
+          status,
+          homeScore,
+          awayScore,
+        ]
+      properties:
+        id:
+          type: string
+        txlineFixtureId:
+          type: string
+        tournament:
+          type: string
+        stage:
+          type: string
+        homeTeam:
+          type: string
+        awayTeam:
+          type: string
+        kickoffAt:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/MatchStatus"
+        homeScore:
+          type: ["integer", "null"]
+        awayScore:
+          type: ["integer", "null"]
+
+    MatchDetail:
+      allOf:
+        - $ref: "#/components/schemas/Match"
+        - type: object
+          required: [marketCount, proofStatus]
+          properties:
+            marketCount:
+              type: integer
+            proofStatus:
+              type: ["string", "null"]
+
+    MatchEvent:
+      type: object
+      required: [id, matchId, minute, type, team, description, createdAt]
+      properties:
+        id:
+          type: string
+        matchId:
+          type: string
+        minute:
+          type: integer
+        type:
+          type: string
+        team:
+          type: ["string", "null"]
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    MarketType:
+      type: string
+      enum:
+        [
+          match_winner,
+          draw,
+          double_chance,
+          exact_score,
+          first_scorer,
+          anytime_scorer,
+          over_under_goals,
+          corners,
+          cards,
+          both_teams_score,
+          tournament_winner,
+          group_winner,
+          custom,
+        ]
+
+    MarketStatus:
+      type: string
+      enum: [open, suspended, settled, void]
+
+    MarketSelection:
+      type: object
+      required: [id, label, odds]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        odds:
+          type: number
+
+    Market:
+      type: object
+      required:
+        [
+          id,
+          matchId,
+          type,
+          title,
+          status,
+          selections,
+          liquidityLamports,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: string
+        matchId:
+          type: ["string", "null"]
+        type:
+          $ref: "#/components/schemas/MarketType"
+        title:
+          type: string
+        status:
+          $ref: "#/components/schemas/MarketStatus"
+        selections:
+          type: array
+          items:
+            $ref: "#/components/schemas/MarketSelection"
+        winningSelectionId:
+          type: ["string", "null"]
+        liquidityLamports:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    MarketInput:
+      type: object
+      required: [type, title, selections]
+      properties:
+        matchId:
+          type: ["string", "null"]
+        type:
+          $ref: "#/components/schemas/MarketType"
+        title:
+          type: string
+          minLength: 3
+        selections:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required: [label, odds]
+            properties:
+              label:
+                type: string
+              odds:
+                type: number
+
+    PositionStatus:
+      type: string
+      enum: [pending, won, lost, void, claimed]
+
+    Position:
+      type: object
+      required:
+        [
+          id,
+          walletAddress,
+          marketId,
+          selectionId,
+          stakeLamports,
+          potentialPayoutLamports,
+          status,
+          placedAt,
+        ]
+      properties:
+        id:
+          type: string
+        walletAddress:
+          type: string
+        marketId:
+          type: string
+        selectionId:
+          type: string
+        stakeLamports:
+          type: number
+        potentialPayoutLamports:
+          type: number
+        status:
+          $ref: "#/components/schemas/PositionStatus"
+        placedAt:
+          type: string
+          format: date-time
+        settledAt:
+          type: ["string", "null"]
+          format: date-time
+        settlementTxSig:
+          type: ["string", "null"]
+
+    PositionInput:
+      type: object
+      required: [walletAddress, marketId, selectionId, stakeLamports]
+      properties:
+        walletAddress:
+          type: string
+        marketId:
+          type: string
+        selectionId:
+          type: string
+        stakeLamports:
+          type: number
+          minimum: 1
+
+    InsuranceType:
+      type: string
+      enum:
+        [
+          favorite_team_loss,
+          tournament_exit,
+          qualification,
+          goal_insurance,
+          event_triggered,
+          custom,
+        ]
+
+    InsuranceProduct:
+      type: object
+      required:
+        [
+          id,
+          name,
+          type,
+          description,
+          premiumRateBps,
+          maxCoverageLamports,
+          triggerCondition,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/InsuranceType"
+        description:
+          type: string
+        premiumRateBps:
+          type: integer
+        maxCoverageLamports:
+          type: number
+        triggerCondition:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    InsuranceProductInput:
+      type: object
+      required:
+        [name, type, description, premiumRateBps, maxCoverageLamports, triggerCondition]
+      properties:
+        name:
+          type: string
+          minLength: 3
+        type:
+          $ref: "#/components/schemas/InsuranceType"
+        description:
+          type: string
+        premiumRateBps:
+          type: integer
+          minimum: 1
+          maximum: 5000
+        maxCoverageLamports:
+          type: number
+          minimum: 1
+        triggerCondition:
+          type: string
+
+    PolicyStatus:
+      type: string
+      enum: [active, triggered, expired, claimed, void]
+
+    InsurancePolicy:
+      type: object
+      required:
+        [
+          id,
+          walletAddress,
+          productId,
+          matchId,
+          premiumPaidLamports,
+          coverageLamports,
+          status,
+          purchasedAt,
+        ]
+      properties:
+        id:
+          type: string
+        walletAddress:
+          type: string
+        productId:
+          type: string
+        matchId:
+          type: ["string", "null"]
+        premiumPaidLamports:
+          type: number
+        coverageLamports:
+          type: number
+        status:
+          $ref: "#/components/schemas/PolicyStatus"
+        purchasedAt:
+          type: string
+          format: date-time
+        claimTxSig:
+          type: ["string", "null"]
+
+    InsurancePolicyInput:
+      type: object
+      required: [walletAddress, productId, coverageLamports]
+      properties:
+        walletAddress:
+          type: string
+        productId:
+          type: string
+        matchId:
+          type: ["string", "null"]
+        coverageLamports:
+          type: number
+          minimum: 1
+
+    ValidationStatus:
+      type: string
+      enum: [pending, verified, failed]
+
+    ProofRecord:
+      type: object
+      required:
+        [
+          id,
+          matchId,
+          merkleRoot,
+          merklePath,
+          proofHash,
+          signature,
+          validationStatus,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: string
+        matchId:
+          type: string
+        merkleRoot:
+          type: string
+        merklePath:
+          type: array
+          items:
+            type: string
+        proofHash:
+          type: string
+        signature:
+          type: string
+        validationStatus:
+          $ref: "#/components/schemas/ValidationStatus"
+        settlementTxSig:
+          type: ["string", "null"]
+        verificationReceiptUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    PortfolioSummary:
+      type: object
+      required:
+        [
+          walletAddress,
+          totalStakedLamports,
+          totalPremiumPaidLamports,
+          openPositions,
+          activePolicies,
+          positions,
+          policies,
+        ]
+      properties:
+        walletAddress:
+          type: string
+        totalStakedLamports:
+          type: number
+        totalPremiumPaidLamports:
+          type: number
+        openPositions:
+          type: integer
+        activePolicies:
+          type: integer
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Position"
+        policies:
+          type: array
+          items:
+            $ref: "#/components/schemas/InsurancePolicy"
+
+    AnalyticsSummary:
+      type: object
+      required:
+        [
+          totalVolumeLamports,
+          openInterestLamports,
+          activeMarkets,
+          activePolicies,
+          totalUsers,
+          settledMarkets,
+        ]
+      properties:
+        totalVolumeLamports:
+          type: number
+        openInterestLamports:
+          type: number
+        activeMarkets:
+          type: integer
+        activePolicies:
+          type: integer
+        totalUsers:
+          type: integer
+        settledMarkets:
+          type: integer
+
+    VolumePoint:
+      type: object
+      required: [date, volumeLamports]
+      properties:
+        date:
+          type: string
+          format: date
+        volumeLamports:
+          type: number
+
+    LiquidityPool:
+      type: object
+      required:
+        [id, marketType, totalLiquidityLamports, aprBps, providerCount]
+      properties:
+        id:
+          type: string
+        marketType:
+          $ref: "#/components/schemas/MarketType"
+        totalLiquidityLamports:
+          type: number
+        aprBps:
+          type: integer
+        providerCount:
+          type: integer
+
+    ProposalStatus:
+      type: string
+      enum: [active, passed, rejected, expired]
+
+    GovernanceProposal:
+      type: object
+      required:
+        [
+          id,
+          title,
+          description,
+          status,
+          votesFor,
+          votesAgainst,
+          createdAt,
+          endsAt,
+        ]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProposalStatus"
+        votesFor:
+          type: number
+        votesAgainst:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+
+    GovernanceProposalInput:
+      type: object
+      required: [title, description, endsAt]
+      properties:
+        title:
+          type: string
+          minLength: 3
+        description:
+          type: string
+          minLength: 3
+        endsAt:
+          type: string
+          format: date-time
+
+    VoteChoice:
+      type: string
+      enum: [for, against]
+
+    VoteInput:
+      type: object
+      required: [walletAddress, choice, weight]
+      properties:
+        walletAddress:
+          type: string
+        choice:
+          $ref: "#/components/schemas/VoteChoice"
+        weight:
+          type: number
+          minimum: 0.000000001
+
+    Vote:
+      type: object
+      required: [id, proposalId, walletAddress, choice, weight, createdAt]
+      properties:
+        id:
+          type: string
+        proposalId:
+          type: string
+        walletAddress:
+          type: string
+        choice:
+          $ref: "#/components/schemas/VoteChoice"
+        weight:
+          type: number
+        createdAt:
+          type: string
+          format: date-time

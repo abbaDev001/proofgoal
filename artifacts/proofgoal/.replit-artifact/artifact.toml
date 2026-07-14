@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "ProofGoal"
+version = "1.0.0"
+id = "artifacts/proofgoal"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21469
+
+[services.development]
+run = "pnpm --filter @workspace/proofgoal run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/proofgoal", "run", "build" ]
+publicDir = "artifacts/proofgoal/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21469"
+BASE_PATH = "/"

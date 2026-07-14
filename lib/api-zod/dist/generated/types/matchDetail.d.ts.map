@@ -1,0 +1,1 @@
+{"version":3,"file":"matchDetail.d.ts","sourceRoot":"","sources":["../../../src/generated/types/matchDetail.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,KAAK,EAAE,MAAM,SAAS,CAAC;AAErC,MAAM,MAAM,WAAW,GAAG,KAAK,GAAG,CAAC;IACjC,WAAW,EAAE,MAAM,CAAC;IACpB,gBAAgB;IAChB,WAAW,EAAE,MAAM,GAAG,IAAI,CAAC;CAC5B,CAAC,CAAC"}

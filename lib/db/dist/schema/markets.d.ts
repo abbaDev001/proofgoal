@@ -1,0 +1,204 @@
+import { z } from "zod/v4";
+export declare const marketTypeValues: readonly ["match_winner", "draw", "double_chance", "exact_score", "first_scorer", "anytime_scorer", "over_under_goals", "corners", "cards", "both_teams_score", "tournament_winner", "group_winner", "custom"];
+export declare const marketStatusValues: readonly ["open", "suspended", "settled", "void"];
+export interface MarketSelectionRecord {
+    id: string;
+    label: string;
+    odds: number;
+}
+export declare const marketsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
+    name: "markets";
+    schema: undefined;
+    columns: {
+        id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "id";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: true;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        matchId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "match_id";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        type: import("drizzle-orm/pg-core").PgColumn<{
+            name: "type";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgText";
+            data: "custom" | "match_winner" | "draw" | "double_chance" | "exact_score" | "first_scorer" | "anytime_scorer" | "over_under_goals" | "corners" | "cards" | "both_teams_score" | "tournament_winner" | "group_winner";
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["match_winner", "draw", "double_chance", "exact_score", "first_scorer", "anytime_scorer", "over_under_goals", "corners", "cards", "both_teams_score", "tournament_winner", "group_winner", "custom"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        title: import("drizzle-orm/pg-core").PgColumn<{
+            name: "title";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        status: import("drizzle-orm/pg-core").PgColumn<{
+            name: "status";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgText";
+            data: "open" | "suspended" | "settled" | "void";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["open", "suspended", "settled", "void"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        selections: import("drizzle-orm/pg-core").PgColumn<{
+            name: "selections";
+            tableName: "markets";
+            dataType: "json";
+            columnType: "PgJsonb";
+            data: MarketSelectionRecord[];
+            driverParam: unknown;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            $type: MarketSelectionRecord[];
+        }>;
+        winningSelectionId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "winning_selection_id";
+            tableName: "markets";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        liquidityLamports: import("drizzle-orm/pg-core").PgColumn<{
+            name: "liquidity_lamports";
+            tableName: "markets";
+            dataType: "number";
+            columnType: "PgNumericNumber";
+            data: number;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "created_at";
+            tableName: "markets";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+    };
+    dialect: "pg";
+}>;
+export declare const insertMarketSchema: z.ZodObject<{
+    status: z.ZodOptional<z.ZodEnum<{
+        open: "open";
+        suspended: "suspended";
+        settled: "settled";
+        void: "void";
+    }>>;
+    matchId: z.ZodOptional<z.ZodNullable<z.ZodUUID>>;
+    type: z.ZodEnum<{
+        custom: "custom";
+        match_winner: "match_winner";
+        draw: "draw";
+        double_chance: "double_chance";
+        exact_score: "exact_score";
+        first_scorer: "first_scorer";
+        anytime_scorer: "anytime_scorer";
+        over_under_goals: "over_under_goals";
+        corners: "corners";
+        cards: "cards";
+        both_teams_score: "both_teams_score";
+        tournament_winner: "tournament_winner";
+        group_winner: "group_winner";
+    }>;
+    title: z.ZodString;
+    selections: z.ZodType<MarketSelectionRecord[], MarketSelectionRecord[], z.core.$ZodTypeInternals<MarketSelectionRecord[], MarketSelectionRecord[]>>;
+    winningSelectionId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    liquidityLamports: z.ZodOptional<z.ZodNumber>;
+}, {
+    out: {};
+    in: {};
+}>;
+export type InsertMarket = z.infer<typeof insertMarketSchema>;
+export type Market = typeof marketsTable.$inferSelect;
+//# sourceMappingURL=markets.d.ts.map

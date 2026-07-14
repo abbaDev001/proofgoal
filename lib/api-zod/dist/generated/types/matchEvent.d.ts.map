@@ -1,0 +1,1 @@
+{"version":3,"file":"matchEvent.d.ts","sourceRoot":"","sources":["../../../src/generated/types/matchEvent.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,MAAM,WAAW,UAAU;IACzB,EAAE,EAAE,MAAM,CAAC;IACX,OAAO,EAAE,MAAM,CAAC;IAChB,MAAM,EAAE,MAAM,CAAC;IACf,IAAI,EAAE,MAAM,CAAC;IACb,gBAAgB;IAChB,IAAI,EAAE,MAAM,GAAG,IAAI,CAAC;IACpB,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,IAAI,CAAC;CACjB"}

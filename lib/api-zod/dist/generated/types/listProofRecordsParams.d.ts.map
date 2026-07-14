@@ -1,0 +1,1 @@
+{"version":3,"file":"listProofRecordsParams.d.ts","sourceRoot":"","sources":["../../../src/generated/types/listProofRecordsParams.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,gBAAgB,EAAE,MAAM,oBAAoB,CAAC;AAE3D,MAAM,MAAM,sBAAsB,GAAG;IACrC,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,MAAM,CAAC,EAAE,gBAAgB,CAAC;CACzB,CAAC"}
